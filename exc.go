@@ -7,11 +7,10 @@ import (
 	"strings"
 )
 
-func process(file string) (map[string]int, error) {
-	counts := make(map[string]int, 0)
+func process(file string, counts map[string]int) error {
 	contents, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	entries := strings.Fields(string(contents))
 	for _, e := range entries {
@@ -22,13 +21,25 @@ func process(file string) (map[string]int, error) {
 			counts[e] = counts[e] + 1
 		}
 	}
-	return counts, nil
+	return nil
+}
+
+func processAll(files []string, counts map[string]int) (err error) {
+	for _, arg := range files {
+		go func() {
+			err = process(arg, counts)
+		}()
+	}
+	return nil
 }
 
 func main() {
-	counts, err := process(os.Args[1])
+	counts := make(map[string]int, 0)
+
+	err := processAll(os.Args[1:], counts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
+		os.Exit(1)
 	}
 	fmt.Printf("%v\n", counts)
 }
