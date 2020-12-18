@@ -1,1 +1,4 @@
-# exc
+# Example
+
+An example project
+
